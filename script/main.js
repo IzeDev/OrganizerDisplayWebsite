@@ -1,0 +1,3 @@
+function mainfunc() {
+    alert("hurrah!");
+}
