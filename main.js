@@ -1,64 +1,42 @@
-const _baseURL = " https://sba.softadmin.se/JimmyGustafsson/WebServices/ScheduleWebService/"
+// const _baseURL = "https://sba.softadmin.se/JimmyGustafsson/WebServices/ScheduleWebService/"
+const _baseURL = "https://9ea6bed0-efbe-4bf8-b6f3-40791aaaf529.mock.pstmn.io/"
 
-async function GetAccessTokenOLD(userName, password) {
+async function GetAccessToken(userName, password) {
     try {
         let object = {UserName: userName, Password: password};
         let requestJson = JSON.stringify(object);
         let response = await fetch(_baseURL + 'GetAccessToken', {
             method : 'Post',
-            // mode: 'no-cors',        
             body : requestJson,
             headers : {
                 'Content-type': 'application/json; charset=UTF-8',
-                'Access-Control-Allow-Origin' : '*'
+                'Accept' : 'application/json'
             }
         });
 
-        response.text
-
-        console.log(response);
-        let responseJson = response.json();
+        let responseJson = await response.json();
+        return responseJson.AccessToken;
     }
     catch (error) {
         console.log(error);
     }
 }
 
-async function GetAccessToken(userName, password) {
+async function GetScheduele(accessToken) {
     try {
-        let object = {UserName: userName, Password: password};
+        let object = {AccessToken: accessToken};
         let requestJson = JSON.stringify(object);
-
-        var xhr = new XMLHttpRequest();
-        xhr.open("Post", _baseURL + 'GetAccessToken', true);
-        xhr.setRequestHeader("Content-type", "application/json");
-        xhr.setRequestHeader("Accept", "application/json");
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
-        // xhr.mode = 'no-cors';
-
-
-        xhr.onreadystatechange = function() { // Call a function when the state changes.
-            if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-                console.log(this.response);
+        let response = await fetch(_baseURL + 'GetUserScheduele', {
+            method : 'Post',
+            body : requestJson,
+            headers : {
+                'Content-type': 'application/json; charset=UTF-8',
+                'Accept' : 'application/json'
             }
-        }
+        });
 
-        xhr.send(requestJson);
-
-        // let response = await fetch(_baseURL + 'GetAccessToken', {
-        //     method : 'Post',
-        //     mode: 'no-cors',        
-        //     body : requestJson,
-        //     headers : {
-        //         'Content-type': 'application/json; charset=UTF-8'
-        //     }
-        // });
-
-        // response.text
-
-        // console.log(response);
-        // let responseJson = response.json();
+        let responseJson = await response.json();
+        return responseJson.CalendarItems;
     }
     catch (error) {
         console.log(error);
@@ -66,14 +44,40 @@ async function GetAccessToken(userName, password) {
 }
 
 async function SignIn(post) {
-    post.preventDefault();
     let signInForm = document.getElementById("SignInForm");
     let userName = signInForm.elements["username"].value;
     let password = signInForm.elements["password"].value;
-    await GetAccessToken(userName, password);
+    let accessToken = await GetAccessToken(userName, password);
+    sessionStorage.setItem("AccessToken", accessToken);
 }
 
-function mainfunc() {
+function createPresentation(presentationDiv, calendarItems) {
+    let datetimeNow = new Date();
+    let presentationItems = [];
+    for (let index = 0; index < calendarItems.length; index++) {
+        const calendarItem = calendarItems[index];
+        
+        if (calendarItem.IsAllDayEvent === true || calendarItem.DateCalendarItemFrom === DateCalendarItemTo) {
+            let mainHeading = calendarItem.CalendarItemName;           
+        }
+         
+        
+    }
+}
+
+async function mainfunc() {
     let signInForm = document.getElementById("SignInForm");
-    signInForm.addEventListener("submit", SignIn);
+    let presentation = document.getElementById("Presentation");
+
+    let accessToken = sessionStorage.getItem("AccessToken");
+
+    if (accessToken === null) {
+        signInForm.style.display = "block";
+        signInForm.addEventListener("submit", SignIn);
+    }
+    else {
+        presentation.style.display = "block";
+        let calendarItems = await GetScheduele(accessToken);
+
+    }
 }
